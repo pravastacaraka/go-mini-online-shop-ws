@@ -25,7 +25,7 @@ func Bootstrap(config *BootstrapConfig) {
 	addressRepo := repository.NewAddressRepository(config.DB)
 
 	// setup use cases
-	userUseCase := usecase.NewUserUseCase(config.Validator, userRepo, addressRepo)
+	userUseCase := usecase.NewUserUseCase(config.DB, config.Validator, userRepo, addressRepo)
 
 	// setup controllers
 	userController := controller.NewUserController(userUseCase)
