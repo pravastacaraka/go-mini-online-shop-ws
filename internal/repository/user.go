@@ -18,10 +18,20 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	}
 }
 
-func (r *UserRepository) FindByEmail(user *model.User, email string) error {
-	return r.DB.Where("email = ?", email).First(user).Error
+func (r *UserRepository) CountByEmail(email string) (int64, error) {
+	var total int64
+	err := r.DB.Model(new(model.User)).Where("email = ?", email).Count(&total).Error
+	return total, err
 }
 
-func (r *UserRepository) FindByToken(user *model.User, token string) error {
-	return r.DB.Where("token = ?", token).First(user).Error
+func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
+	var result *model.User
+	err := r.DB.Where("email = ?", email).First(&result).Error
+	return result, err
+}
+
+func (r *UserRepository) FindByToken(token string) (*model.User, error) {
+	var result *model.User
+	err := r.DB.Where("token = ?", token).First(&result).Error
+	return result, err
 }

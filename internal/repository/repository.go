@@ -6,16 +6,28 @@ type Repository[T any] struct {
 	DB *gorm.DB
 }
 
-func (r *Repository[T]) Create(data *T) error {
-	return r.DB.Create(data).Error
+func (r *Repository[T]) Create(tx *gorm.DB, data *T) error {
+	db := r.DB
+	if tx != nil {
+		db = tx
+	}
+	return db.Create(data).Error
 }
 
-func (r *Repository[T]) Update(data *T) error {
-	return r.DB.Save(data).Error
+func (r *Repository[T]) Update(tx *gorm.DB, data *T) error {
+	db := r.DB
+	if tx != nil {
+		db = tx
+	}
+	return db.Save(data).Error
 }
 
-func (r *Repository[T]) Delete(data *T) error {
-	return r.DB.Delete(data).Error
+func (r *Repository[T]) Delete(tx *gorm.DB, data *T) error {
+	db := r.DB
+	if tx != nil {
+		db = tx
+	}
+	return db.Delete(data).Error
 }
 
 func (r *Repository[T]) FindByID(data *T, id any) error {

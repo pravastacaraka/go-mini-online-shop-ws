@@ -3,14 +3,13 @@ package route
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/spf13/viper"
-	"gorm.io/gorm"
+
+	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/delivery/http/controller"
 )
 
 type RouteConfig struct {
-	App    *fiber.App
-	DB     *gorm.DB
-	Config *viper.Viper
+	App            *fiber.App
+	UserController *controller.UserController
 }
 
 func (c *RouteConfig) Setup() {
@@ -21,12 +20,9 @@ func (c *RouteConfig) Setup() {
 }
 
 func (c *RouteConfig) SetupRoute() {
-	c.App.Post("/api/users", func(c *fiber.Ctx) error {
-		return c.SendString("hello register users")
-	})
-	c.App.Get("/api/users/_login", func(c *fiber.Ctx) error {
-		return c.SendString("hello login user")
-	})
+	v1 := c.App.Group("/api/v1/users")
+	v1.Get("/login", c.UserController.Login)
+	v1.Post("/register", c.UserController.Register)
 }
 
 func (c *RouteConfig) SetupAuthRoute() {
