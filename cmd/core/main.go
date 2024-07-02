@@ -11,12 +11,14 @@ import (
 func main() {
 	cfg := config.NewViper()
 	db := config.NewDatabase(cfg)
+	validator := config.NewValidator()
 	app := config.NewFiber(cfg)
 
 	config.Bootstrap(&config.BootstrapConfig{
-		Config: cfg,
-		DB:     db,
-		App:    app,
+		Config:    cfg,
+		DB:        db,
+		Validator: validator,
+		App:       app,
 	})
 
 	port := 8080
