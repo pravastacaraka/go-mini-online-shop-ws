@@ -1,0 +1,23 @@
+{
+  "app": {
+    "name": "ws-mini-online-shop"
+  },
+  "web": {
+    "prefork": false,
+    "port": 8080
+  },
+  "database": {
+    "postgres": {
+      "username": "<DB_USERNAME>",
+      "password": "<DB_PASSWORD>",
+      "host": "<DB_HOST>",
+      "port": 5432,
+      "name": "<DB_NAME>",
+      "pool": {
+        "idle": 10,
+        "max": 100,
+        "lifetime": 300
+      }
+    }
+  }
+}
