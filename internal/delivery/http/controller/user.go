@@ -32,7 +32,7 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.JSON(domain.WebResponse[*domain.UserResponse]{Data: response})
+	return ctx.JSON(domain.WebResponse[*domain.RegisterUserResponse]{Data: response})
 }
 
 func (c *UserController) Login(ctx *fiber.Ctx) error {
@@ -43,11 +43,11 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	// response, err := c.UseCase.Create(ctx.UserContext(), nil)
-	// if err != nil {
-	// 	log.Errorf("failed to register user, err: %s", err.Error())
-	// 	return err
-	// }
+	response, err := c.UseCase.Login(ctx.UserContext(), request)
+	if err != nil {
+		log.Errorf("failed to login user, err: %s", err.Error())
+		return err
+	}
 
-	return ctx.JSON(domain.WebResponse[*domain.UserResponse]{})
+	return ctx.JSON(domain.WebResponse[*domain.LoginUserResponse]{Data: response})
 }
