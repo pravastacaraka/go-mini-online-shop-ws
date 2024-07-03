@@ -41,13 +41,13 @@ func (c *ProductUseCase) Add(ctx context.Context, request *domain.AddProductRequ
 	defer tx.Rollback()
 
 	product := &model.Product{
-		Name:     request.Name,
-		Desc:     request.Desc,
-		SKU:      request.SKU,
-		Stock:    request.Stock,
-		Price:    request.Price,
-		Pictures: request.Pictures,
-		Category: model.Category{ID: request.CategoryID},
+		Name:       request.Name,
+		Desc:       request.Desc,
+		SKU:        request.SKU,
+		Stock:      request.Stock,
+		Price:      request.Price,
+		Pictures:   request.Pictures,
+		CategoryID: request.CategoryID,
 	}
 	if err := c.ProductRepo.Create(tx, product); err != nil {
 		log.Errorf("failed to add product, err: %s", err.Error())
@@ -121,12 +121,12 @@ func (c *ProductUseCase) Update(ctx context.Context, request *domain.UpdateProdu
 		product.SKU = request.SKU
 	}
 
-	if request.Stock > 0 {
-		product.Stock = request.Stock
+	if request.Stock != nil {
+		product.Stock = *request.Stock
 	}
 
-	if request.Price > 0 {
-		product.Price = request.Price
+	if request.Price != nil {
+		product.Price = *request.Price
 	}
 
 	if request.CategoryID > 0 {
