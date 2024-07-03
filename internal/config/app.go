@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/delivery/http/controller"
+	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/delivery/http/middleware"
 	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/delivery/http/route"
 	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/repository"
 	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/usecase"
@@ -30,8 +31,12 @@ func Bootstrap(config *BootstrapConfig) {
 	// setup controllers
 	userController := controller.NewUserController(userUseCase)
 
+	// setup custom middleware
+	authMiddleware := middleware.NewAuth(userUseCase)
+
 	route := route.RouteConfig{
 		App:            config.App,
+		AuthMiddleware: authMiddleware,
 		UserController: userController,
 	}
 	route.Setup()

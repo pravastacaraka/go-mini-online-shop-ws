@@ -10,6 +10,7 @@ import (
 
 type RouteConfig struct {
 	App            *fiber.App
+	AuthMiddleware fiber.Handler
 	UserController *controller.UserController
 }
 
@@ -32,11 +33,25 @@ func (c *RouteConfig) SetupMiddlewares() {
 }
 
 func (c *RouteConfig) SetupRoutes() {
-	v1 := c.App.Group("/api/v1/users")
-	v1.Post("/login", c.UserController.Login)
-	v1.Post("/register", c.UserController.Register)
+	v1 := c.App.Group("/api/v1")
+
+	users := v1.Group("/users")
+	users.Post("/login", c.UserController.Login)
+	users.Post("/register", c.UserController.Register)
+
+	products := v1.Group("/products")
+	products.Get("/list", func(c *fiber.Ctx) error {
+		return c.SendString("ini list product")
+	})
 }
 
 func (c *RouteConfig) SetupAuthRoutes() {
+	c.App.Use(c.AuthMiddleware)
 
+	v1 := c.App.Group("/api/v1")
+
+	cart := v1.Group("/cart")
+	cart.Get("/list", func(c *fiber.Ctx) error {
+		return c.SendString("ini isi cart kamu")
+	})
 }

@@ -30,8 +30,8 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	return result, err
 }
 
-func (r *UserRepository) FindByToken(token string) (*model.User, error) {
-	var result *model.User
-	err := r.DB.Where("token = ?", token).First(&result).Error
-	return result, err
+func (r *UserRepository) GetTokenByID(id uint64) (string, error) {
+	var user *model.User
+	err := r.DB.Select("token").First(&user, id).Error
+	return user.Token, err
 }

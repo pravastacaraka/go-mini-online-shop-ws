@@ -36,6 +36,27 @@ func NewUserUseCase(
 	}
 }
 
+// TODO: need changes with JWT implementation
+func (c *UserUseCase) Verify(ctx context.Context, request *domain.AuthUserRequest) (*domain.AuthUserResponse, error) {
+	if err := c.Validate.Struct(request); err != nil {
+		log.Errorf("bad request, err: %s", err.Error())
+		return nil, fiber.ErrBadRequest
+	}
+
+	token, err := c.UserRepo.GetTokenByID(request.ID)
+	if err != nil {
+		log.Errorf("failed to count user by id, err: %s", err.Error())
+		return nil, fiber.ErrNotFound
+	}
+
+	if token != request.Token {
+		log.Errorf("user id %d is not authorized!", request.ID)
+		return nil, fiber.ErrUnauthorized
+	}
+
+	return &domain.AuthUserResponse{ID: request.ID}, nil
+}
+
 func (c *UserUseCase) Create(ctx context.Context, request *domain.RegisterUserRequest) (*domain.RegisterUserResponse, error) {
 	if err := c.Validate.Struct(request); err != nil {
 		log.Errorf("bad request, err: %s", err.Error())
