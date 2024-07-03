@@ -30,6 +30,8 @@ func (r *Repository[T]) Delete(tx *gorm.DB, data *T) error {
 	return db.Delete(data).Error
 }
 
-func (r *Repository[T]) FindByID(data *T, id any) error {
-	return r.DB.Where("id = ?", id).Take(data).Error
+func (r *Repository[T]) FindByID(id any) (*T, error) {
+	var data *T
+	err := r.DB.First(&data, id).Error
+	return data, err
 }
