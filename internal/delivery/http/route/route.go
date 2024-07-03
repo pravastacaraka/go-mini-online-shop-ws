@@ -9,9 +9,10 @@ import (
 )
 
 type RouteConfig struct {
-	App            *fiber.App
-	AuthMiddleware fiber.Handler
-	UserController *controller.UserController
+	App               *fiber.App
+	AuthMiddleware    fiber.Handler
+	UserController    *controller.UserController
+	ProductController *controller.ProductController
 }
 
 func (c *RouteConfig) Setup() {
@@ -40,15 +41,18 @@ func (c *RouteConfig) SetupRoutes() {
 	users.Post("/register", c.UserController.Register)
 
 	products := v1.Group("/products")
-	products.Get("/list", func(c *fiber.Ctx) error {
-		return c.SendString("ini list product")
-	})
+	products.Get("/", c.ProductController.List)
+	products.Get("/:productId", c.ProductController.Get)
 }
 
 func (c *RouteConfig) SetupAuthRoutes() {
 	c.App.Use(c.AuthMiddleware)
 
 	v1 := c.App.Group("/api/v1")
+
+	products := v1.Group("/products")
+	products.Post("/", c.ProductController.Add)
+	products.Patch("/:productId", c.ProductController.Update)
 
 	cart := v1.Group("/cart")
 	cart.Get("/list", func(c *fiber.Ctx) error {

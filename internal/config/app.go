@@ -24,20 +24,24 @@ func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
 	userRepo := repository.NewUserRepository(config.DB)
 	addressRepo := repository.NewAddressRepository(config.DB)
+	productRepo := repository.NewProductRepository(config.DB)
 
 	// setup use cases
 	userUseCase := usecase.NewUserUseCase(config.DB, config.Validator, userRepo, addressRepo)
+	productUseCase := usecase.NewProductUseCase(config.DB, config.Validator, productRepo)
 
 	// setup controllers
 	userController := controller.NewUserController(userUseCase)
+	productController := controller.NewProductController(productUseCase)
 
 	// setup custom middleware
 	authMiddleware := middleware.NewAuth(userUseCase)
 
 	route := route.RouteConfig{
-		App:            config.App,
-		AuthMiddleware: authMiddleware,
-		UserController: userController,
+		App:               config.App,
+		AuthMiddleware:    authMiddleware,
+		UserController:    userController,
+		ProductController: productController,
 	}
 	route.Setup()
 }
