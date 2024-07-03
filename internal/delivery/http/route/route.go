@@ -13,6 +13,7 @@ type RouteConfig struct {
 	AuthMiddleware    fiber.Handler
 	UserController    *controller.UserController
 	ProductController *controller.ProductController
+	CartController    *controller.CartController
 }
 
 func (c *RouteConfig) Setup() {
@@ -55,7 +56,9 @@ func (c *RouteConfig) SetupAuthRoutes() {
 	products.Patch("/:productId", c.ProductController.Update)
 
 	cart := v1.Group("/cart")
-	cart.Get("/list", func(c *fiber.Ctx) error {
-		return c.SendString("ini isi cart kamu")
-	})
+	cart.Get("/", c.CartController.List)
+	cart.Post("/", c.CartController.Add)
+	cart.Delete("/:cartId", c.CartController.Delete)
+	cart.Patch("/:cartDetailId", c.CartController.UpdateDetail)
+	cart.Delete("/:cartDetailId", c.CartController.DeleteDetail)
 }

@@ -19,8 +19,8 @@ type UpdateProductRequest struct {
 	Name       string   `json:"name" validate:"max=150"`
 	Desc       string   `json:"desc" validate:"max=1000"`
 	SKU        string   `json:"sku"`
-	Stock      uint16   `json:"stock" validate:"numeric,max=999"`
-	Price      uint32   `json:"price" validate:"numeric,max=1000000000"`
+	Stock      *uint16  `json:"stock,omitempty"`
+	Price      *uint32  `json:"price,omitempty"`
 	CategoryID uint8    `json:"category_id" validate:"numeric"`
 	Pictures   []string `json:"pictures"`
 }

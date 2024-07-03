@@ -8,17 +8,17 @@ import (
 )
 
 type Product struct {
-	ID         uint64      `gorm:"column:id;primaryKey"`
-	Name       string      `gorm:"column:name"`
-	Desc       string      `gorm:"column:desc"`
-	SKU        string      `gorm:"column:sku"`
-	Stock      uint16      `gorm:"column:stock"`
-	Price      uint32      `gorm:"column:price"`
-	Pictures   MultiString `gorm:"column:pictures;type:text"`
-	CreatedAt  time.Time   `gorm:"column:created_at"`
-	UpdatedAt  time.Time   `gorm:"column:updated_at"`
-	CategoryID uint8       `gorm:"column:category_id" json:"-"`
-	Category   Category    `gorm:"foreignKey:category_id"`
+	ID         uint64      `json:"id,omitempty" gorm:"column:id;primaryKey"`
+	Name       string      `json:"name,omitempty" gorm:"column:name"`
+	Desc       string      `json:"desc,omitempty" gorm:"column:desc"`
+	SKU        string      `json:"sku,omitempty" gorm:"column:sku"`
+	Stock      uint16      `json:"stock,omitempty" gorm:"column:stock"`
+	Price      uint32      `json:"price,omitempty" gorm:"column:price"`
+	Pictures   MultiString `json:"pictures,omitempty" gorm:"column:pictures;type:text"`
+	CreatedAt  time.Time   `json:"created_at,omitempty" gorm:"column:created_at"`
+	UpdatedAt  time.Time   `json:"updated_at,omitempty" gorm:"column:updated_at"`
+	CategoryID uint8       `json:"-" gorm:"column:category_id"`
+	Category   *Category   `json:"category,omitempty" gorm:"foreignKey:category_id"`
 }
 
 func (p *Product) TableName() string {
