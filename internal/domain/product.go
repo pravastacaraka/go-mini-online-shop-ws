@@ -10,6 +10,7 @@ type AddProductRequest struct {
 	SKU        string   `json:"sku"`
 	Stock      uint16   `json:"stock" validate:"required,numeric,max=999"`
 	Price      uint32   `json:"price" validate:"required,numeric,max=1000000000"`
+	Weight     float32  `json:"weight" validate:"required"`
 	CategoryID uint8    `json:"category_id" validate:"required,numeric"`
 	Pictures   []string `json:"pictures"`
 }
@@ -21,6 +22,7 @@ type UpdateProductRequest struct {
 	SKU        string   `json:"sku"`
 	Stock      *uint16  `json:"stock,omitempty"`
 	Price      *uint32  `json:"price,omitempty"`
+	Weight     *float32 `json:"weight,omitempty"`
 	CategoryID uint8    `json:"category_id" validate:"numeric"`
 	Pictures   []string `json:"pictures"`
 }
@@ -38,6 +40,7 @@ type GetProductResponse struct {
 	SKU          string   `json:"sku"`
 	Stock        uint16   `json:"stock"`
 	Price        uint32   `json:"price"`
+	Weight       float32  `json:"weight"`
 	Pictures     []string `json:"pictures"`
 	CategoryID   uint8    `json:"category_id"`
 	CategoryName string   `json:"category_name"`

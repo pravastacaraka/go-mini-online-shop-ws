@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS "order" (
     address_id bigint NOT NULL,
     invoice varchar(50) NOT NULL,
     total_price int NOT NULL,
+    total_weight double precision NOT NULL,
     shipping_price int NOT NULL,
     "status" int NOT NULL DEFAULT 100,
     created_at timestamp with time zone NOT NULL DEFAULT now(),

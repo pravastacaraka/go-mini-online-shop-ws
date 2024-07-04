@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -45,8 +46,11 @@ func (c *UserUseCase) Verify(ctx context.Context, request *domain.AuthUserReques
 
 	token, err := c.UserRepo.GetTokenByID(request.ID)
 	if err != nil {
-		log.Errorf("failed to count user by id, err: %s", err.Error())
-		return nil, fiber.ErrNotFound
+		log.Errorf("failed to get token by id, err: %s", err.Error())
+		if strings.Contains(err.Error(), "record not found") {
+			return nil, fiber.ErrUnauthorized
+		}
+		return nil, fiber.ErrInternalServerError
 	}
 
 	if token != request.Token {

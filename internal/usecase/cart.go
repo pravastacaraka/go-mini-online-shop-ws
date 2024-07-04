@@ -283,8 +283,78 @@ func (c *CartUseCase) List(ctx context.Context, request *domain.GetCartListReque
 	}
 
 	result = &domain.GetCartListResponse{
+		CartID:               cart.ID,
 		AvailableProducts:    availableProducts,
 		NonAvailableProducts: nonAvailableProducts,
+	}
+
+	return result, nil
+}
+
+func (c *CartUseCase) Checkout(ctx context.Context, request *domain.CheckoutRequest) (*domain.CheckoutResponse, error) {
+	var (
+		shippingPrice uint32 = 0 // Assuming the shipping price is free
+		result        *domain.CheckoutResponse
+	)
+
+	if err := c.Validate.Struct(request); err != nil {
+		log.Errorf("bad request, err: %s", err.Error())
+		return result, fiber.ErrBadRequest
+	}
+
+	total, _ := c.CartRepo.CountByUserID(request.UserID)
+	if total < 1 {
+		return result, nil
+	}
+
+	cart, err := c.CartRepo.FindByUserID(request.UserID)
+	if err != nil {
+		log.Errorf("failed to get cart, err: %s", err.Error())
+		return result, fiber.ErrInternalServerError
+	}
+
+	var (
+		totalPrice   uint32
+		totalWeight  float32
+		orderDetails []*domain.OrderDetail
+	)
+	for _, detail := range cart.CartDetails {
+		if detail.Product.Stock < 1 {
+			continue
+		}
+
+		temp := &domain.OrderDetail{
+			ProductID:      detail.Product.ID,
+			ProductName:    detail.Product.Name,
+			Quantity:       detail.Quantity,
+			Price:          detail.Product.Price,
+			Weight:         detail.Product.Weight,
+			SubTotalWeight: detail.Product.Weight * float32(detail.Quantity),
+			SubTotalPrice:  uint32(detail.Product.Price) * uint32(detail.Quantity),
+			CategoryID:     uint64(detail.Product.CategoryID),
+		}
+
+		totalWeight += temp.SubTotalWeight
+		totalPrice += temp.SubTotalPrice
+
+		orderDetails = append(orderDetails, temp)
+	}
+
+	result = &domain.CheckoutResponse{
+		CartID:       cart.ID,
+		OrderDetails: orderDetails,
+		Customer: domain.Customer{
+			UserID: cart.User.ID,
+		},
+		Payment: domain.Payment{
+			TotalPrice:   totalPrice,
+			TotalPayment: totalPrice + shippingPrice,
+		},
+		Shipment: domain.Shipment{
+			ShippingPrice: shippingPrice,
+			TotalWeight:   totalWeight,
+			AddressID:     cart.User.Addresses[0].ID,
+		},
 	}
 
 	return result, nil

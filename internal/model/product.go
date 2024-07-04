@@ -14,6 +14,7 @@ type Product struct {
 	SKU        string      `json:"sku,omitempty" gorm:"column:sku"`
 	Stock      uint16      `json:"stock,omitempty" gorm:"column:stock"`
 	Price      uint32      `json:"price,omitempty" gorm:"column:price"`
+	Weight     float32     `json:"weight,omitempty" gorm:"column:weight"`
 	Pictures   MultiString `json:"pictures,omitempty" gorm:"column:pictures;type:text"`
 	CreatedAt  time.Time   `json:"created_at,omitempty" gorm:"column:created_at"`
 	UpdatedAt  time.Time   `json:"updated_at,omitempty" gorm:"column:updated_at"`

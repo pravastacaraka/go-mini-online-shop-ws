@@ -14,6 +14,7 @@ type RouteConfig struct {
 	UserController    *controller.UserController
 	ProductController *controller.ProductController
 	CartController    *controller.CartController
+	OrderController   *controller.OrderController
 }
 
 func (c *RouteConfig) Setup() {
@@ -52,13 +53,21 @@ func (c *RouteConfig) SetupAuthRoutes() {
 	v1 := c.App.Group("/api/v1")
 
 	products := v1.Group("/products")
-	products.Post("/", c.ProductController.Add)
+	products.Post("/add", c.ProductController.Add)
 	products.Patch("/:productId", c.ProductController.Update)
 
 	cart := v1.Group("/cart")
 	cart.Get("/", c.CartController.List)
-	cart.Post("/", c.CartController.Add)
+	cart.Post("/add", c.CartController.Add)
 	cart.Delete("/:cartId", c.CartController.Delete)
 	cart.Patch("/:cartDetailId", c.CartController.UpdateDetail)
 	cart.Delete("/:cartDetailId", c.CartController.DeleteDetail)
+
+	checkout := v1.Group("/checkout")
+	checkout.Get("/:cartId", c.CartController.Checkout)
+
+	order := v1.Group("/order")
+	order.Get("/", c.OrderController.List)
+	order.Post("/create", c.OrderController.Create)
+	order.Post("/pay/:paymentId", c.OrderController.Pay)
 }

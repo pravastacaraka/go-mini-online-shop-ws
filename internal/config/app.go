@@ -27,16 +27,21 @@ func Bootstrap(config *BootstrapConfig) {
 	productRepo := repository.NewProductRepository(config.DB)
 	cartRepo := repository.NewCartRepository(config.DB)
 	cartDetailRepo := repository.NewCartDetailRepository(config.DB)
+	paymentRepo := repository.NewPaymentRepository(config.DB)
+	orderRepo := repository.NewOrderRepository(config.DB)
+	orderDetailRepo := repository.NewOrderDetailRepository(config.DB)
 
 	// setup use cases
 	userUseCase := usecase.NewUserUseCase(config.DB, config.Validator, userRepo, addressRepo)
 	productUseCase := usecase.NewProductUseCase(config.DB, config.Validator, productRepo)
 	cartUseCase := usecase.NewCartUseCase(config.DB, config.Validator, productRepo, cartRepo, cartDetailRepo)
+	orderUseCase := usecase.NewOrderUseCase(config.DB, config.Validator, cartRepo, paymentRepo, orderRepo, orderDetailRepo)
 
 	// setup controllers
 	userController := controller.NewUserController(userUseCase)
 	productController := controller.NewProductController(productUseCase)
 	cartController := controller.NewCartController(cartUseCase)
+	orderController := controller.NewOrderController(orderUseCase)
 
 	// setup custom middleware
 	authMiddleware := middleware.NewAuth(userUseCase)
@@ -47,6 +52,7 @@ func Bootstrap(config *BootstrapConfig) {
 		UserController:    userController,
 		ProductController: productController,
 		CartController:    cartController,
+		OrderController:   orderController,
 	}
 	route.Setup()
 }
