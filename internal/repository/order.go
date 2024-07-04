@@ -21,7 +21,7 @@ func NewOrderRepository(db *gorm.DB) *OrderRepository {
 
 func (r *OrderRepository) FindByPaymentID(id any) (*model.Order, error) {
 	var data *model.Order
-	err := r.DB.Where("payment_id = ?", id).First(&data).Error
+	err := r.DB.Preload("OrderDetails").Where("payment_id = ?", id).First(&data).Error
 	return data, err
 }
 

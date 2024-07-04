@@ -34,7 +34,6 @@ type GetCartListResponse struct {
 }
 
 type CartList struct {
-	ID           uint64 `json:"id"`
 	ProductID    uint64 `json:"product_id"`
 	ProductName  string `json:"product_name"`
 	ProductPrice uint32 `json:"product_price"`

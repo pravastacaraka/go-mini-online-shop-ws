@@ -35,7 +35,7 @@ func Bootstrap(config *BootstrapConfig) {
 	userUseCase := usecase.NewUserUseCase(config.DB, config.Validator, userRepo, addressRepo)
 	productUseCase := usecase.NewProductUseCase(config.DB, config.Validator, productRepo)
 	cartUseCase := usecase.NewCartUseCase(config.DB, config.Validator, productRepo, cartRepo, cartDetailRepo)
-	orderUseCase := usecase.NewOrderUseCase(config.DB, config.Validator, cartRepo, paymentRepo, orderRepo, orderDetailRepo)
+	orderUseCase := usecase.NewOrderUseCase(config.DB, config.Validator, productRepo, cartRepo, paymentRepo, orderRepo, orderDetailRepo)
 
 	// setup controllers
 	userController := controller.NewUserController(userUseCase)

@@ -48,3 +48,9 @@ func (r *ProductRepository) FindByID(productID uint64) (*model.Product, error) {
 	err := r.DB.Preload("Category").First(&product, productID).Error
 	return &product, err
 }
+
+func (r *ProductRepository) FindByIDs(productIDs []uint64) ([]*model.Product, error) {
+	var products []*model.Product
+	err := r.DB.Preload("Category").Find(&products, productIDs).Error
+	return products, err
+}

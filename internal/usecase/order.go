@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -19,6 +20,7 @@ import (
 type OrderUseCase struct {
 	DB              *gorm.DB
 	Validate        *validator.Validate
+	ProductRepo     *repository.ProductRepository
 	CartRepo        *repository.CartRepository
 	PaymentRepo     *repository.PaymentRepository
 	OrderRepo       *repository.OrderRepository
@@ -28,6 +30,7 @@ type OrderUseCase struct {
 func NewOrderUseCase(
 	db *gorm.DB,
 	validate *validator.Validate,
+	productRepo *repository.ProductRepository,
 	cartRepo *repository.CartRepository,
 	paymentRepo *repository.PaymentRepository,
 	orderRepo *repository.OrderRepository,
@@ -37,6 +40,7 @@ func NewOrderUseCase(
 		DB:              db,
 		Validate:        validate,
 		CartRepo:        cartRepo,
+		ProductRepo:     productRepo,
 		PaymentRepo:     paymentRepo,
 		OrderRepo:       orderRepo,
 		OrderDetailRepo: orderDetailRepo,
@@ -51,6 +55,7 @@ func (c *OrderUseCase) Create(ctx context.Context, request *domain.CreateOrderRe
 		return result, fiber.ErrBadRequest
 	}
 
+	// Check cart, is it available? If yes then proceed the order, otherwise declined
 	countCart, err := c.CartRepo.CountByID(request.CartID)
 	if err != nil {
 		log.Errorf("failed to count cart, err: %s", err.Error())
@@ -60,6 +65,7 @@ func (c *OrderUseCase) Create(ctx context.Context, request *domain.CreateOrderRe
 		return result, fiber.NewError(fiber.StatusBadRequest, "You don't have any cart. Please add your item(s) to your cart!")
 	}
 
+	// Check payment, does the order already created? If no then proceed the order, otherwise declined
 	countPayment, err := c.PaymentRepo.CountByCartID(request.CartID)
 	if err != nil {
 		log.Errorf("failed to count payment, err: %s", err.Error())
@@ -69,11 +75,38 @@ func (c *OrderUseCase) Create(ctx context.Context, request *domain.CreateOrderRe
 		return result, fiber.NewError(fiber.StatusBadRequest, "Your order has been created previously. Please make a payment!")
 	}
 
+	// Check ordered quantity with last product stock
+	var (
+		productIDs  []uint64
+		mapProducts = make(map[uint64]*domain.OrderDetail)
+	)
+	for _, val := range request.OrderDetails {
+		mapProducts[val.ProductID] = val
+		productIDs = append(productIDs, val.ProductID)
+	}
+	products, err := c.ProductRepo.FindByIDs(productIDs)
+	if err != nil {
+		log.Errorf("failed to get products, err: %s", err.Error())
+		return result, fiber.ErrInternalServerError
+	}
+	for _, product := range products {
+		val, ok := mapProducts[product.ID]
+		if !ok {
+			continue
+		}
+		if val.Quantity <= product.Stock {
+			continue
+		}
+		log.Errorf(`Product "%s" is out of stock`, val.ProductName)
+		return result, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf(`Product "%s" is out of stock`, val.ProductName))
+	}
+
 	invoice := utils.GenerateInvoice()
 
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
+	// Insert payment
 	payment := &model.Payment{
 		CartID:      request.CartID,
 		Amount:      request.Payment.TotalPayment,
@@ -86,13 +119,14 @@ func (c *OrderUseCase) Create(ctx context.Context, request *domain.CreateOrderRe
 		return result, fiber.ErrInternalServerError
 	}
 
+	// Insert order
 	order := &model.Order{
 		PaymentID:     payment.ID,
 		UserID:        request.Customer.UserID,
-		AddressID:     request.Shipment.AddressID,
+		AddressID:     request.Customer.AddressID,
 		Invoice:       invoice,
 		TotalPrice:    request.Payment.TotalPrice,
-		TotalWeight:   request.Shipment.TotalWeight,
+		TotalWeight:   request.Shipment.ShippingWeight,
 		ShippingPrice: request.Shipment.ShippingPrice,
 		Status:        model.OrderStatusCreated,
 	}
@@ -101,21 +135,30 @@ func (c *OrderUseCase) Create(ctx context.Context, request *domain.CreateOrderRe
 		return result, fiber.ErrInternalServerError
 	}
 
+	// Insert order details
 	orderDetails := []*model.OrderDetail{}
 	for _, val := range request.OrderDetails {
 		temp := &model.OrderDetail{
-			OrderID:       order.ID,
-			ProductID:     val.ProductID,
-			ProductName:   val.ProductName,
-			Price:         val.Price,
-			Quantity:      val.Quantity,
-			SubTotalPrice: val.SubTotalPrice,
-			CategoryID:    val.CategoryID,
+			OrderID:        order.ID,
+			ProductID:      val.ProductID,
+			ProductName:    val.ProductName,
+			Quantity:       val.Quantity,
+			Price:          val.Price,
+			SubTotalPrice:  val.SubTotalPrice,
+			Weight:         val.Weight,
+			SubTotalWeight: val.SubTotalWeight,
+			CategoryID:     val.CategoryID,
 		}
 		orderDetails = append(orderDetails, temp)
 	}
 	if err := c.OrderDetailRepo.BulkCreate(tx, orderDetails); err != nil {
 		log.Errorf("failed to create order, err: %s", err.Error())
+		return result, fiber.ErrInternalServerError
+	}
+
+	// Delete cart after order created, because we don't need anymore
+	if err := c.CartRepo.DeleteByID(tx, payment.CartID); err != nil {
+		log.Errorf("failed to delete cart, err: %s", err.Error())
 		return result, fiber.ErrInternalServerError
 	}
 
@@ -142,6 +185,7 @@ func (c *OrderUseCase) DoPayment(ctx context.Context, request *domain.DoPaymentO
 		return result, fiber.ErrBadRequest
 	}
 
+	// Check payment, does the pending payment is exist? If yes proceed payment, otherwise declined
 	payment, err := c.PaymentRepo.FindByID(request.PaymentID)
 	if err != nil {
 		if !strings.Contains(err.Error(), "no record") {
@@ -156,6 +200,7 @@ func (c *OrderUseCase) DoPayment(ctx context.Context, request *domain.DoPaymentO
 		return result, fiber.NewError(fiber.StatusBadRequest, "Payment code does not same")
 	}
 
+	// Check order, does the pending order is exist? If yes proceed payment, otherwise declined
 	order, err := c.OrderRepo.FindByPaymentID(request.PaymentID)
 	if err != nil {
 		if !strings.Contains(err.Error(), "no record") {
@@ -165,6 +210,33 @@ func (c *OrderUseCase) DoPayment(ctx context.Context, request *domain.DoPaymentO
 	}
 	if order == nil || order.ID < 1 {
 		return result, fiber.NewError(fiber.StatusBadRequest, "Order with this payment does not found")
+	}
+
+	// Check ordered quantity with last product stock
+	var (
+		productIDs      []uint64
+		orderedProducts = make(map[uint64]*model.OrderDetail)
+	)
+	for _, val := range order.OrderDetails {
+		orderedProducts[val.ProductID] = val
+		productIDs = append(productIDs, val.ProductID)
+	}
+	products, err := c.ProductRepo.FindByIDs(productIDs)
+	if err != nil {
+		log.Errorf("failed to get products, err: %s", err.Error())
+		return result, fiber.ErrInternalServerError
+	}
+	for _, product := range products {
+		val, ok := orderedProducts[product.ID]
+		if !ok {
+			continue
+		}
+		if val.Quantity <= product.Stock {
+			continue
+		}
+		// TODO: Need to send events to cancel pending payment and order asynchronously
+		log.Errorf(`Product "%s" is out of stock`, val.ProductName)
+		return result, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf(`Product "%s" is out of stock`, val.ProductName))
 	}
 
 	tx := c.DB.WithContext(ctx).Begin()
@@ -182,9 +254,9 @@ func (c *OrderUseCase) DoPayment(ctx context.Context, request *domain.DoPaymentO
 		return result, fiber.ErrInternalServerError
 	}
 
-	if err := c.CartRepo.DeleteByID(tx, payment.CartID); err != nil {
-		log.Errorf("failed to delete cart, err: %s", err.Error())
-		return result, fiber.ErrInternalServerError
+	for _, product := range products {
+		qty := orderedProducts[product.ID].Quantity
+		tx.Model(&product).UpdateColumn("stock", gorm.Expr("stock - ?", qty))
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -196,6 +268,19 @@ func (c *OrderUseCase) DoPayment(ctx context.Context, request *domain.DoPaymentO
 		Invoice: order.Invoice,
 		Message: "Payment has been successfully made",
 	}
+
+	return result, nil
+}
+
+func (c *OrderUseCase) Get(ctx context.Context, request *domain.GetOrderBuyerRequest) (*domain.GetOrderBuyerResponse, error) {
+	var result *domain.GetOrderBuyerResponse
+
+	if err := c.Validate.Struct(request); err != nil {
+		log.Errorf("bad request, err: %s", err.Error())
+		return result, fiber.ErrBadRequest
+	}
+
+	// TODO: Add get order detail use case
 
 	return result, nil
 }
@@ -229,6 +314,7 @@ func (c *OrderUseCase) List(ctx context.Context, request *domain.GetOrdersReques
 		}
 
 		temp := &domain.GetOrderBuyerResponse{
+			ID:           order.ID,
 			Invoice:      order.Invoice,
 			Status:       model.OrderStatusDesc[order.Status],
 			OrderDetails: orderDetails,
@@ -242,7 +328,7 @@ func (c *OrderUseCase) List(ctx context.Context, request *domain.GetOrdersReques
 				ShippingAgentName:    "Kurir Toko", // Still hardcoded
 				ShippingAgentProduct: "Regular",
 				ShippingPrice:        utils.IDR(order.ShippingPrice),
-				TotalWeight:          order.TotalWeight,
+				ShippingWeight:       order.TotalWeight,
 			},
 			Payment: domain.GetOrderBuyerResponse_Payment{
 				GatewayName:  order.Payment.GatewayName,

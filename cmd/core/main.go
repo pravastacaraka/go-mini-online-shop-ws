@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/gofiber/fiber/v2/log"
 
@@ -21,8 +21,8 @@ func main() {
 		App:       app,
 	})
 
-	port := 8080
-	if err := app.Listen(fmt.Sprintf(":%d", port)); err != nil {
-		log.Fatalf("Failed to start server on port :%d", port)
+	port := os.Getenv("PORT")
+	if err := app.Listen(":" + port); err != nil {
+		log.Fatalf("Failed to start server on port: %s, err: %s", port, err.Error())
 	}
 }
