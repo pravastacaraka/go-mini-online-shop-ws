@@ -45,6 +45,29 @@ func (c *OrderController) Create(ctx *fiber.Ctx) error {
 	return ctx.JSON(domain.WebResponse[*domain.CreateOrderResponse]{Data: response})
 }
 
+func (c *OrderController) Get(ctx *fiber.Ctx) error {
+	auth := middleware.GetAuthenticatedUserID(ctx)
+
+	orderID, _ := strconv.Atoi(ctx.Params("orderId"))
+
+	request := &domain.GetOrderBuyerRequest{
+		UserID:  auth.ID,
+		OrderID: uint64(orderID),
+	}
+
+	if err := ctx.BodyParser(request); err != nil {
+		log.Errorf("failed to parse request body, err: %s", err.Error())
+		return fiber.ErrBadRequest
+	}
+
+	response, err := c.UseCase.Get(ctx.UserContext(), request)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(domain.WebResponse[*domain.GetOrderBuyerResponse]{Data: response})
+}
+
 func (c *OrderController) List(ctx *fiber.Ctx) error {
 	auth := middleware.GetAuthenticatedUserID(ctx)
 

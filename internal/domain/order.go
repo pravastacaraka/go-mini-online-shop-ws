@@ -29,7 +29,8 @@ type OrderDetail struct {
 }
 
 type Customer struct {
-	UserID uint64 `json:"user_id" validate:"required,min=1"`
+	UserID    uint64 `json:"user_id" validate:"required,min=1"`
+	AddressID uint64 `json:"address_id" validate:"required,min=1"`
 }
 
 type Payment struct {
@@ -38,9 +39,10 @@ type Payment struct {
 }
 
 type Shipment struct {
-	AddressID     uint64  `json:"address_id" validate:"required,min=1"`
-	ShippingPrice uint32  `json:"shipping_price"`
-	TotalWeight   float32 `json:"total_weight" validate:"required"`
+	ShippingAgentName    string  `json:"shipping_agent_name"`
+	ShippingAgentProduct string  `json:"shipping_agent_product"`
+	ShippingPrice        uint32  `json:"shipping_price"`
+	ShippingWeight       float32 `json:"shipping_weight" validate:"required"`
 }
 
 type GetOrdersRequest struct {
@@ -52,7 +54,13 @@ type GetOrdersRequest struct {
 	Size      uint8     `json:"size" validate:"required,numeric,min=1"`
 }
 
+type GetOrderBuyerRequest struct {
+	UserID  uint64 `json:"user_id" validate:"required,min=1"`
+	OrderID uint64 `json:"order_id" validate:"required,min=1"`
+}
+
 type GetOrderBuyerResponse struct {
+	ID           uint64                               `json:"id"`
 	Invoice      string                               `json:"invoice"`
 	Status       string                               `json:"status"`
 	TotalPrice   string                               `json:"total_price"`
@@ -80,7 +88,7 @@ type GetOrderBuyerResponse_Shipment struct {
 	ShippingAgentName    string  `json:"shipping_agent_name"`
 	ShippingAgentProduct string  `json:"shipping_agent_product"`
 	ShippingPrice        string  `json:"shipping_price"`
-	TotalWeight          float32 `json:"total_weight"`
+	ShippingWeight       float32 `json:"shipping_weight"`
 }
 
 type GetOrderBuyerResponse_Payment struct {

@@ -267,7 +267,6 @@ func (c *CartUseCase) List(ctx context.Context, request *domain.GetCartListReque
 	)
 	for _, detail := range cart.CartDetails {
 		temp := &domain.CartList{
-			ID:           detail.ID,
 			ProductID:    detail.Product.ID,
 			ProductName:  detail.Product.Name,
 			ProductPrice: detail.Product.Price,
@@ -314,9 +313,9 @@ func (c *CartUseCase) Checkout(ctx context.Context, request *domain.CheckoutRequ
 	}
 
 	var (
-		totalPrice   uint32
-		totalWeight  float32
-		orderDetails []*domain.OrderDetail
+		totalPrice     uint32
+		shippingWeight float32
+		orderDetails   []*domain.OrderDetail
 	)
 	for _, detail := range cart.CartDetails {
 		if detail.Product.Stock < 1 {
@@ -334,8 +333,8 @@ func (c *CartUseCase) Checkout(ctx context.Context, request *domain.CheckoutRequ
 			CategoryID:     uint64(detail.Product.CategoryID),
 		}
 
-		totalWeight += temp.SubTotalWeight
 		totalPrice += temp.SubTotalPrice
+		shippingWeight += temp.SubTotalWeight
 
 		orderDetails = append(orderDetails, temp)
 	}
@@ -344,16 +343,18 @@ func (c *CartUseCase) Checkout(ctx context.Context, request *domain.CheckoutRequ
 		CartID:       cart.ID,
 		OrderDetails: orderDetails,
 		Customer: domain.Customer{
-			UserID: cart.User.ID,
+			UserID:    cart.User.ID,
+			AddressID: cart.User.Addresses[0].ID,
 		},
 		Payment: domain.Payment{
 			TotalPrice:   totalPrice,
 			TotalPayment: totalPrice + shippingPrice,
 		},
 		Shipment: domain.Shipment{
-			ShippingPrice: shippingPrice,
-			TotalWeight:   totalWeight,
-			AddressID:     cart.User.Addresses[0].ID,
+			ShippingAgentName:    "Kurir Toko", // Still hardcoded
+			ShippingAgentProduct: "Regular",
+			ShippingPrice:        shippingPrice,
+			ShippingWeight:       shippingWeight,
 		},
 	}
 

@@ -45,7 +45,6 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 
 	response, err := c.UseCase.Login(ctx.UserContext(), request)
 	if err != nil {
-		log.Errorf("failed to login user, err: %s", err.Error())
 		return err
 	}
 

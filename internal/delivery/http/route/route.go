@@ -69,5 +69,6 @@ func (c *RouteConfig) SetupAuthRoutes() {
 	order := v1.Group("/order")
 	order.Get("/", c.OrderController.List)
 	order.Post("/create", c.OrderController.Create)
+	order.Get("/:orderId", c.OrderController.Get)
 	order.Post("/pay/:paymentId", c.OrderController.Pay)
 }
