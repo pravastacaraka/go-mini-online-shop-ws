@@ -72,7 +72,7 @@ func (c *ProductController) List(ctx *fiber.Ctx) error {
 	request := &domain.GetProductsRequest{
 		CategoryID: uint8(ctx.QueryInt("category_id", 0)),
 		Page:       uint8(ctx.QueryInt("page", 1)),
-		Size:       uint8(ctx.QueryInt("size", 1)),
+		Size:       uint8(ctx.QueryInt("size", 10)),
 	}
 
 	responses, total, err := c.UseCase.List(ctx.UserContext(), request)

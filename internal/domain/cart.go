@@ -28,6 +28,7 @@ type GetCartListRequest struct {
 }
 
 type GetCartListResponse struct {
+	CartID               uint64      `json:"cart_id"`
 	AvailableProducts    []*CartList `json:"available_products"`
 	NonAvailableProducts []*CartList `json:"non_available_products"`
 }
@@ -38,4 +39,17 @@ type CartList struct {
 	ProductName  string `json:"product_name"`
 	ProductPrice uint32 `json:"product_price"`
 	Quantity     uint16 `json:"quantity"`
+}
+
+type CheckoutRequest struct {
+	CartID uint64 `json:"cart_id" validate:"required,min=1"`
+	UserID uint64 `json:"user_id" validate:"required,min=1"`
+}
+
+type CheckoutResponse struct {
+	CartID       uint64         `json:"cart_id"`
+	Customer     Customer       `json:"customer"`
+	Payment      Payment        `json:"payment"`
+	Shipment     Shipment       `json:"shipment"`
+	OrderDetails []*OrderDetail `json:"order_details"`
 }

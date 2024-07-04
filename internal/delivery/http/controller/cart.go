@@ -105,3 +105,20 @@ func (c *CartController) List(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(domain.WebResponse[*domain.GetCartListResponse]{Data: response})
 }
+
+func (c *CartController) Checkout(ctx *fiber.Ctx) error {
+	auth := middleware.GetAuthenticatedUserID(ctx)
+	cartID, _ := strconv.Atoi(ctx.Params("cartID"))
+
+	request := &domain.CheckoutRequest{
+		UserID: auth.ID,
+		CartID: uint64(cartID),
+	}
+
+	response, err := c.UseCase.Checkout(ctx.UserContext(), request)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(domain.WebResponse[*domain.CheckoutResponse]{Data: response})
+}

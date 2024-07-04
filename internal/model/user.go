@@ -3,14 +3,14 @@ package model
 import "time"
 
 type User struct {
-	ID        uint64    `gorm:"column:id;primaryKey"`
-	Email     string    `gorm:"column:email"`
-	Password  string    `gorm:"column:password"`
-	Name      string    `gorm:"column:name"`
-	Token     string    `gorm:"column:token"`
-	CreatedAt time.Time `gorm:"column:created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at"`
-	Addresses []Address `gorm:"foreignKey:user_id;references:id"`
+	ID        uint64     `json:"id,omitempty" gorm:"column:id;primaryKey"`
+	Email     string     `json:"email,omitempty" gorm:"column:email"`
+	Password  string     `json:"password,omitempty" gorm:"column:password"`
+	Name      string     `json:"name,omitempty" gorm:"column:name"`
+	Token     string     `json:"token,omitempty" gorm:"column:token"`
+	CreatedAt time.Time  `json:"created_at,omitempty" gorm:"column:created_at"`
+	UpdatedAt time.Time  `json:"updated_at,omitempty" gorm:"column:updated_at"`
+	Addresses []*Address `json:"addresses,omitempty" gorm:"foreignKey:user_id"`
 }
 
 func (u *User) TableName() string {
