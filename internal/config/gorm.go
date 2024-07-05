@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -11,13 +12,12 @@ import (
 )
 
 func NewDatabase(cfg *viper.Viper) *gorm.DB {
-	dbHost := cfg.GetString("database.postgres.host")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPass := os.Getenv("POSTGRES_PASSWORD")
+	dbName := os.Getenv("POSTGRES_DB")
 	dbPort := cfg.GetInt32("database.postgres.port")
-	dbUser := cfg.GetString("database.postgres.username")
-	dbPass := cfg.GetString("database.postgres.password")
-	dbName := cfg.GetString("database.postgres.name")
 
-	dsn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable TimeZone=UTC", dbHost, dbPort, dbName, dbUser, dbPass)
+	dsn := fmt.Sprintf("host=postgres port=%d dbname=%s user=%s password=%s sslmode=disable TimeZone=UTC", dbPort, dbName, dbUser, dbPass)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
