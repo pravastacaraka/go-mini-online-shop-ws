@@ -22,6 +22,10 @@ func main() {
 	})
 
 	port := os.Getenv("PORT")
+	if port == "" {
+		port = cfg.GetString("web.port")
+	}
+
 	if err := app.Listen(":" + port); err != nil {
 		log.Fatalf("Failed to start server on port: %s, err: %s", port, err.Error())
 	}

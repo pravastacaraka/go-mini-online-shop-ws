@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "mini-online-shop-ws"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000
+  },
+  "database": {
+    "postgres": {
+      "port": 5432,
+      "pool": {
+        "idle": 10,
+        "max": 100,
+        "lifetime": 300
+      }
+    }
+  }
+}
