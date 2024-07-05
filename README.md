@@ -28,7 +28,7 @@ This repository contains the backend for a mini online shop website. It handles 
 
 Here is the ERD for the database schema:
 
-![ERD](./images/erd.png)
+![ERD](./docs/erd.png)
 
 ## Project Structure
 
