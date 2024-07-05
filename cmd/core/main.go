@@ -11,12 +11,14 @@ import (
 func main() {
 	cfg := config.NewViper()
 	db := config.NewDatabase(cfg)
+	redis := config.NewRedis(cfg)
 	validator := config.NewValidator()
 	app := config.NewFiber(cfg)
 
 	config.Bootstrap(&config.BootstrapConfig{
 		Config:    cfg,
 		DB:        db,
+		Redis:     redis,
 		Validator: validator,
 		App:       app,
 	})
