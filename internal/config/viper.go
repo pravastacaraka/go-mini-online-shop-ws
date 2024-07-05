@@ -8,12 +8,10 @@ import (
 )
 
 func NewViper() *viper.Viper {
-	env := os.Getenv("APP_ENV")
-
 	config := viper.New()
 	config.SetConfigType("json")
 
-	if env == "production" {
+	if os.Getenv("APP_ENV") == "production" {
 		config.SetConfigName("config.prod")
 		config.AddConfigPath("/usr/src/app/") // Docker container path
 	} else {

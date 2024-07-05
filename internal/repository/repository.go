@@ -1,9 +1,13 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"github.com/gofiber/storage/redis/v3"
+	"gorm.io/gorm"
+)
 
 type Repository[T any] struct {
-	DB *gorm.DB
+	DB    *gorm.DB
+	Redis *redis.Storage
 }
 
 func (r *Repository[T]) Create(tx *gorm.DB, data *T) error {

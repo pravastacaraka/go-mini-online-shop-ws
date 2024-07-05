@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type User struct {
 	ID        uint64     `json:"id,omitempty" gorm:"column:id;primaryKey"`
@@ -15,4 +18,12 @@ type User struct {
 
 func (u *User) TableName() string {
 	return "user"
+}
+
+func (u *User) GetRedisKey(id any) string {
+	return fmt.Sprintf("user:%d", id)
+}
+
+func (u *User) GetRedisTTL() time.Duration {
+	return 24 * time.Hour
 }

@@ -44,7 +44,7 @@ func (c *UserUseCase) Verify(ctx context.Context, request *domain.AuthUserReques
 		return nil, fiber.ErrBadRequest
 	}
 
-	token, err := c.UserRepo.GetTokenByID(request.ID)
+	token, err := c.UserRepo.FindByID(request.ID)
 	if err != nil {
 		log.Errorf("failed to get token by id, err: %s", err.Error())
 		if strings.Contains(err.Error(), "record not found") {
@@ -67,14 +67,15 @@ func (c *UserUseCase) Create(ctx context.Context, request *domain.RegisterUserRe
 		return nil, fiber.ErrBadRequest
 	}
 
+	request.Email = strings.ToLower(request.Email)
+
 	total, err := c.UserRepo.CountByEmail(request.Email)
 	if err != nil {
 		log.Errorf("failed to count user by email, err: %s", err.Error())
 		return nil, fiber.ErrInternalServerError
 	}
 	if total > 0 {
-		log.Error("user already exists!")
-		return nil, fiber.ErrConflict
+		return nil, fiber.NewError(fiber.StatusConflict, "Email has been registered")
 	}
 
 	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
@@ -98,7 +99,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *domain.RegisterUserRe
 
 	address := &model.Address{
 		UserID:     user.ID,
-		Address:    request.Address,
+		Address:    strings.ToTitle(request.Address),
 		PostalCode: request.PostalCode,
 	}
 	if err := c.AddressRepo.Create(tx, address); err != nil {
@@ -119,6 +120,8 @@ func (c *UserUseCase) Login(ctx context.Context, request *domain.LoginUserReques
 		log.Errorf("bad request, err: %s", err.Error())
 		return nil, fiber.ErrBadRequest
 	}
+
+	request.Email = strings.ToLower(request.Email)
 
 	user, err := c.UserRepo.FindByEmail(request.Email)
 	if err != nil {

@@ -15,9 +15,14 @@ func NewDatabase(cfg *viper.Viper) *gorm.DB {
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPass := os.Getenv("POSTGRES_PASSWORD")
 	dbName := os.Getenv("POSTGRES_DB")
-	dbPort := cfg.GetInt32("database.postgres.port")
+	dbHost := cfg.GetString("database.postgres.host")
+	dbPort := cfg.GetInt("database.postgres.port")
 
-	dsn := fmt.Sprintf("host=postgres port=%d dbname=%s user=%s password=%s sslmode=disable TimeZone=UTC", dbPort, dbName, dbUser, dbPass)
+	if os.Getenv("POSTGRES_HOST") != "" {
+		dbHost = os.Getenv("POSTGRES_HOST")
+	}
+
+	dsn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable TimeZone=UTC", dbHost, dbPort, dbName, dbUser, dbPass)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

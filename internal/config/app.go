@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/storage/redis/v3"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
@@ -16,13 +17,14 @@ import (
 type BootstrapConfig struct {
 	Config    *viper.Viper
 	DB        *gorm.DB
+	Redis     *redis.Storage
 	Validator *validator.Validate
 	App       *fiber.App
 }
 
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
-	userRepo := repository.NewUserRepository(config.DB)
+	userRepo := repository.NewUserRepository(config.DB, config.Redis)
 	addressRepo := repository.NewAddressRepository(config.DB)
 	productRepo := repository.NewProductRepository(config.DB)
 	cartRepo := repository.NewCartRepository(config.DB)
