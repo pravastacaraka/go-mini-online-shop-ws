@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/utils"
 )
 
 func NewDatabase(cfg *viper.Viper) *gorm.DB {
@@ -27,7 +29,12 @@ func NewDatabase(cfg *viper.Viper) *gorm.DB {
 		dbPort, _ = strconv.Atoi(os.Getenv("POSTGRES_PORT"))
 	}
 
-	dsn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable TimeZone=UTC", dbHost, dbPort, dbName, dbUser, dbPass)
+	sslMode := "disable"
+	if utils.IsProduction() {
+		sslMode = "require"
+	}
+
+	dsn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s TimeZone=UTC", dbHost, dbPort, dbName, dbUser, dbPass, sslMode)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
