@@ -23,9 +23,9 @@ func main() {
 		App:       app,
 	})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = cfg.GetString("web.port")
+	port := cfg.GetString("web.port")
+	if os.Getenv("PORT") != "" {
+		port = os.Getenv("PORT")
 	}
 
 	if err := app.Listen(":" + port); err != nil {

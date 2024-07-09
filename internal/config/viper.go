@@ -1,24 +1,23 @@
 package config
 
 import (
-	"os"
-
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/viper"
+
+	"github.com/pravastacaraka/go-ws-mini-online-shop/internal/utils"
 )
 
 func NewViper() *viper.Viper {
 	config := viper.New()
 	config.SetConfigType("json")
 
-	if os.Getenv("APP_ENV") == "production" {
+	if utils.IsProduction() {
 		config.SetConfigName("config.prod")
-		config.AddConfigPath("/usr/src/app/") // Docker container path
 	} else {
 		config.SetConfigName("config.local")
-		config.AddConfigPath("./../") // Local development path
-		config.AddConfigPath(".")     // Add current directory as a fallback
+		config.AddConfigPath("./../../") // Local development path
 	}
+	config.AddConfigPath(".") // Add current directory as a fallback
 
 	if err := config.ReadInConfig(); err != nil {
 		log.Fatalf("fatal error config file: %s", err.Error())
