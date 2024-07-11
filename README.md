@@ -32,7 +32,7 @@ Here is the ERD for the database schema:
 
 ## Project Structure
 
-```bash
+```sh
 .
 ├── cmd # Entry point of the application
 │   └── core
@@ -54,18 +54,31 @@ Here is the ERD for the database schema:
 
 ## Getting Started
 
-### Prerequisites
+### Running locally
+
+#### Prerequisites
 
 - Go 1.20+
 - PostgreSQL
 - Redis
-- Docker
 
-### Installation
+#### Set up the database
+
+Connect to your PostgreSQL server, create the database, and do migration.
+
+```sh
+# Create the database
+createdb db_mini_online_shop
+
+# Apply migrations
+migrate -path db/migrations -database postgres://[username]:[password]@localhost:5432/db_mini_online_shop?sslmode=disable up
+```
+
+#### Installation
 
 Clone the repository:
 
-```bash
+```sh
 git clone git@github.com:pravastacaraka/go-mini-online-shop-ws.git
 
 cd go-mini-online-shop-ws
@@ -73,31 +86,40 @@ cd go-mini-online-shop-ws
 
 Install dependencies:
 
-```bash
+```sh
 go mod vendor && go mod tidy
 ```
 
-### Set up the database
+#### Configure the application
 
-Connect to your PostgreSQL server, create the database, and do migration.
+1. Open `config.local.json` file to configure the app config.
+2. Change the database dan redis credentials according to your previous setting via environment variables look at the `.env.example` file.
 
-```bash
-# Create the database
-createdb db-mini-online-shop
+#### Run the application
 
-# Apply migrations
-migrate -path ./migrations -database postgres://[username]:[password]@localhost:5432/db-mini-online-shop?sslmode=disable up
+```sh
+go run cmd/core/main.go
 ```
 
-### Configure the application
+### Running container
 
-1. Open `config.local.json` file in the root directory to configure the application config.
-2. Change the database, redis credentials according to your previous setting via environment variables look at the `.env.example` file.
+Having trouble running manually in local? You can directly use the docker that I have provided.
 
-### Run the application
+#### Prerequisites
 
-```bash
-go run cmd/core/main.go
+- Docker
+
+#### Installation
+
+```sh
+# build the image
+docker compose build
+
+# start the app
+docker compose up
+
+# stop the app gracefully
+docker compose down
 ```
 
 ## API Documentation
