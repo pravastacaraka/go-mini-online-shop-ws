@@ -47,14 +47,10 @@ func (c *UserUseCase) Verify(ctx context.Context, request *domain.AuthUserReques
 	token, err := c.UserRepo.FindByID(request.ID)
 	if err != nil {
 		log.Errorf("failed to get token by id, err: %s", err.Error())
-		if strings.Contains(err.Error(), "record not found") {
-			return nil, fiber.ErrUnauthorized
-		}
 		return nil, fiber.ErrInternalServerError
 	}
 
 	if token != request.Token {
-		log.Errorf("user id %d is not authorized!", request.ID)
 		return nil, fiber.ErrUnauthorized
 	}
 
@@ -126,12 +122,15 @@ func (c *UserUseCase) Login(ctx context.Context, request *domain.LoginUserReques
 	user, err := c.UserRepo.FindByEmail(request.Email)
 	if err != nil {
 		log.Errorf("failed to get user by email, err: %s", err.Error())
-		return nil, fiber.ErrUnauthorized
+		return nil, fiber.ErrInternalServerError
+	}
+	if user == nil || user.ID < 1 {
+		return nil, fiber.NewError(fiber.StatusBadRequest, "User is not registered")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
 		log.Errorf("failed to compare encrypted password, err: %s", err.Error())
-		return nil, fiber.ErrUnauthorized
+		return nil, fiber.ErrInternalServerError
 	}
 
 	tx := c.DB.WithContext(ctx).Begin()

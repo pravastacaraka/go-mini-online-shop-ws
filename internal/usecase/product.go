@@ -46,6 +46,7 @@ func (c *ProductUseCase) Add(ctx context.Context, request *domain.AddProductRequ
 		SKU:        request.SKU,
 		Stock:      request.Stock,
 		Price:      request.Price,
+		Weight:     request.Weight,
 		Pictures:   request.Pictures,
 		CategoryID: request.CategoryID,
 	}
@@ -128,6 +129,10 @@ func (c *ProductUseCase) Update(ctx context.Context, request *domain.UpdateProdu
 
 	if request.Price != nil {
 		product.Price = *request.Price
+	}
+
+	if request.Weight != nil {
+		product.Weight = *request.Weight
 	}
 
 	if request.CategoryID > 0 {

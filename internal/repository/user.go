@@ -65,9 +65,13 @@ func (r *UserRepository) FindByID(id any) (string, error) {
 	)
 
 	result, err := r.Redis.Get(user.GetRedisKey(id))
-	if err != nil {
+	if err != nil || len(result) < 1 {
 		if err = r.DB.First(&user, id).Error; err != nil {
-			return "", err
+			if err == gorm.ErrRecordNotFound {
+				return "", nil
+			} else {
+				return "", err
+			}
 		}
 
 		jsn, _ := json.Marshal(user)
@@ -75,7 +79,14 @@ func (r *UserRepository) FindByID(id any) (string, error) {
 			return "", nil
 		}
 	}
-	_ = json.Unmarshal(result, &user)
+
+	if err = json.Unmarshal(result, &user); err != nil {
+		return "", nil
+	}
+
+	if user == nil || user.ID < 1 {
+		return "", nil
+	}
 
 	return user.Token, err
 }
@@ -93,7 +104,11 @@ func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
 	)
 
 	if err = r.DB.Where("email = ?", email).First(&user).Error; err != nil {
-		return user, err
+		if err == gorm.ErrRecordNotFound {
+			return user, nil
+		} else {
+			return user, err
+		}
 	}
 
 	jsn, _ := json.Marshal(user)

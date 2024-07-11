@@ -12,11 +12,18 @@ import (
 
 func NewAuth(userUserCase *usecase.UserUseCase) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		userID, _ := strconv.Atoi(ctx.Get("X-User-ID", "0"))
+		request := &domain.AuthUserRequest{}
 
-		request := &domain.AuthUserRequest{
-			ID:    uint64(userID),
-			Token: strings.Split(ctx.Get("Authorization", "NOT_FOUND"), " ")[1],
+		if userID, _ := strconv.Atoi(ctx.Get("X-User-ID", "0")); userID != 0 {
+			request.ID = uint64(userID)
+		} else {
+			return fiber.NewError(fiber.StatusBadRequest, "User id must not 0")
+		}
+
+		if token := strings.Split(ctx.Get("Authorization", "NOT_FOUND"), " "); len(token) > 1 {
+			request.Token = token[1]
+		} else {
+			return fiber.NewError(fiber.StatusUnauthorized, "Authentication is not found")
 		}
 
 		auth, err := userUserCase.Verify(ctx.UserContext(), request)
