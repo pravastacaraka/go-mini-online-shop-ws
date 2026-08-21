@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM golang:1.22 as builder
+FROM golang:1.27 as builder
 
 ENV APP_HOME /go/src/app
 
@@ -14,7 +14,7 @@ RUN go mod download && go mod verify
 RUN go build -o app ./cmd/core
 
 # Stage 2: Runtime image
-FROM golang:1.22
+FROM golang:1.27
 
 ENV APP_HOME /go/src/app
 
