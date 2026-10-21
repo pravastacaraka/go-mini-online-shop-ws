@@ -1,6 +1,6 @@
 module github.com/pravastacaraka/go-ws-mini-online-shop
 
-go 1.22.4
+go 1.24
 
 require (
 	github.com/go-playground/validator/v10 v10.22.0
@@ -28,7 +28,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
